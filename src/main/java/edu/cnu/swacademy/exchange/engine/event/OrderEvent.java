@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Getter
 @AllArgsConstructor
-public class OrderEvent extends ExchangeEvent {
+public class OrderEvent {
     private final Order order;
     private final CompletableFuture<List<Match>> result;
 }
