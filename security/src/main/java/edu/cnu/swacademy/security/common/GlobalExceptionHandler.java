@@ -1,19 +1,16 @@
 package edu.cnu.swacademy.security.common;
 
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
-  @ExceptionHandler
-  @ResponseBody
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  String handle(ConstraintViolationException exception) {
-    return exception.getMessage();
+
+  @ExceptionHandler(SecurityException.class)
+  public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException e) {
+    HttpStatus httpStatus = HttpStatus.valueOf(Integer.parseInt(e.getErrorResponse().code()));
+    return ResponseEntity.status(httpStatus).body(e.getErrorResponse());
   }
 }

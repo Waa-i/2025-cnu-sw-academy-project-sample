@@ -1,32 +1,35 @@
-package edu.cnu.swacademy.security.user.entity;
+package edu.cnu.swacademy.security.user;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import edu.cnu.swacademy.security.common.BaseEntity;
-import edu.cnu.swacademy.security.util.HashUtil;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Getter
-@NoArgsConstructor
-@SQLDelete(sql = "Update user set deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@SQLRestriction("deleted_at = null")
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE user SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@Table(name = "user")
 @Entity
 public class User extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+  @Column(columnDefinition = "INT UNSIGNED")
+  private int id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10)
   private String name;
 
-  @Column(unique = true, nullable = false)
+  @Column(nullable = false, length = 100, unique = true)
   private String email;
 
   @Column(nullable = false)
@@ -35,6 +38,6 @@ public class User extends BaseEntity {
   public User(String name, String email, String password) {
     this.name = name;
     this.email = email;
-    this.password = HashUtil.sha512(password);
+    this.password = password;
   }
 }

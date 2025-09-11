@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/2025-cnu-sw-academy-project-sample.iml" filepath="$PROJECT_DIR$/.idea/2025-cnu-sw-academy-project-sample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security.main.iml" />
     </modules>
   </component>
 </project>
