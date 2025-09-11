@@ -1,11 +1,14 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:${MYSQL_PORT}/${MYSQL_DB_NAME}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:security}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:1234}
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
+    # DB에 테이블 없으면 자동생성
+    hibernate:
+      ddl-auto: update
   jackson:
     property-naming-strategy: SNAKE_CASE
 
@@ -15,3 +18,12 @@ server:
 exchange-server:
   host: ${EXCHANGE_SERVER_HOST:localhost}
   port: ${EXCHANGE_SERVER_PORT:8081}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:아주긴시크릿키값123456789012345678901234567890}
+  access-token-expired-at: ${ACCESS_TOKEN_EXPIRED_AT:5}
+  refresh-token-expired-at: ${REFRESH_TOKEN_EXPIRED_AT:7}
+
+# secret key는 임시값
+aes:
+  secret-key: ${AES_SECRET_KEY:my-super-secret-key-123456}
