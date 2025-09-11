@@ -1,12 +1,16 @@
 package edu.cnu.swacademy.exchange.orderbook;
 
 import edu.cnu.swacademy.exchange.match.Match;
+import edu.cnu.swacademy.exchange.match.MatchResult;
 import edu.cnu.swacademy.exchange.order.Order;
 import edu.cnu.swacademy.exchange.orderbook.exception.PriceOrderNotExistException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 public class OrderBook {
     private final int stockId;
@@ -48,7 +52,7 @@ public class OrderBook {
         Queue<Order> oppositeQueue = opposite.get(order.getPrice());
         if(oppositeQueue == null || oppositeQueue.isEmpty()) {
             same.computeIfAbsent(order.getPrice(), k -> new ArrayDeque<>()).add(order);
-            result.add(new Match(stockId, Match.MatchResult.UNMATCHED));
+            result.add(new Match(stockId, MatchResult.UNMATCHED));
             return result;
         }
         while (order.getUnfilledAmount() > 0 && !oppositeQueue.isEmpty()) {
@@ -58,7 +62,7 @@ public class OrderBook {
             order.setUnfilledAmount(order.getUnfilledAmount() - filledQty);
             oppositeOrder.setUnfilledAmount(oppositeOrder.getUnfilledAmount() - filledQty);
 
-            result.add(new Match(stockId, Match.MatchResult.MATCHED, order.getOrderId(), oppositeOrder.getOrderId()));
+            result.add(new Match(stockId, MatchResult.MATCHED, order.getOrderId(), oppositeOrder.getOrderId()));
 
             if(oppositeOrder.getUnfilledAmount() == 0) {
                 oppositeQueue.poll();

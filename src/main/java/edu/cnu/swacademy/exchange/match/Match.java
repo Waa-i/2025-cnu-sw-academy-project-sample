@@ -22,5 +22,4 @@ public class Match {
         this.takerOrderId = takerOrderId;
     }
 
-    public enum MatchResult {MATCHED, UNMATCHED}
 }
