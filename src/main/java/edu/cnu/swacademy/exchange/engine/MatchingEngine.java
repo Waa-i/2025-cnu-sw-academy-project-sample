@@ -2,7 +2,7 @@ package edu.cnu.swacademy.exchange.engine;
 
 import edu.cnu.swacademy.exchange.engine.event.OrderEvent;
 import edu.cnu.swacademy.exchange.match.Match;
-import edu.cnu.swacademy.exchange.order.OrderEventQueue;
+import edu.cnu.swacademy.exchange.engine.event.OrderEventQueue;
 import edu.cnu.swacademy.exchange.orderbook.OrderBookManager;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

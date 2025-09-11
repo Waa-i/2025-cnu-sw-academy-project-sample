@@ -10,6 +10,6 @@ public class OrderBookManager {
     private final Map<Integer, OrderBook> orderBookMap = new ConcurrentHashMap<>();
 
     public OrderBook getOrderBook(int stockId) {
-        return orderBookMap.computeIfAbsent(stockId, k -> new OrderBook(stockId));
+        return orderBookMap.computeIfAbsent(stockId, k -> new MemoryOrderBook(stockId));
     }
 }

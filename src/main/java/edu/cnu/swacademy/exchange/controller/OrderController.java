@@ -3,7 +3,7 @@ package edu.cnu.swacademy.exchange.controller;
 import edu.cnu.swacademy.exchange.engine.event.OrderEvent;
 import edu.cnu.swacademy.exchange.match.Match;
 import edu.cnu.swacademy.exchange.order.Order;
-import edu.cnu.swacademy.exchange.order.OrderEventQueue;
+import edu.cnu.swacademy.exchange.engine.event.OrderEventQueue;
 import edu.cnu.swacademy.exchange.order.dto.OrderCancelResponse;
 import edu.cnu.swacademy.exchange.order.dto.OrderRequest;
 import edu.cnu.swacademy.exchange.order.dto.OrderResponse;
