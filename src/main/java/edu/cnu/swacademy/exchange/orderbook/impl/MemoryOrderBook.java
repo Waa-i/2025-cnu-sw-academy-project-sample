@@ -43,7 +43,7 @@ public class MemoryOrderBook implements OrderBook {
         }
         return List.copyOf(askQueue);
     }
-    public List<Integer> prices(Order.Side side) {
+    public List<Integer> prices(int __, Order.Side side) {
         if(side == Order.Side.BUY) {
             return List.copyOf(asks.keySet());
         }

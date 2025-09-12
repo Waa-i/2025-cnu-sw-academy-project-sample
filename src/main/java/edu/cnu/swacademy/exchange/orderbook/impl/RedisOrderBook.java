@@ -8,6 +8,7 @@ import edu.cnu.swacademy.exchange.order.dto.PriceAddRequest;
 import edu.cnu.swacademy.exchange.order.dto.PriceRemoveRequest;
 import edu.cnu.swacademy.exchange.order.event.PriceEvent;
 import edu.cnu.swacademy.exchange.orderbook.OrderBook;
+import edu.cnu.swacademy.exchange.orderbook.exception.NoOrderException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,8 +47,8 @@ public class RedisOrderBook implements OrderBook {
     }
 
     @Override
-    public List<Integer> prices(Order.Side side) {
-        return List.of();
+    public List<Integer> prices(int stockId, Order.Side side) {
+        return getPrices(stockId, side);
     }
     private Match cancelOrder(Order order) {
         if(stringRedisTemplate.hasKey(orderDetailsKey(order.getOrderId()))) {
@@ -90,6 +91,13 @@ public class RedisOrderBook implements OrderBook {
             addOrder(order);
         }
         return result;
+    }
+    private List<Integer> getPrices(int stockId, Order.Side side) {
+        List<String> prices = stringRedisTemplate.opsForList().range(priceKey(stockId, side), 0, -1);
+        if(prices == null) {
+            throw new NoOrderException(side.name());
+        }
+        return prices.stream().map(Integer::parseInt).toList();
     }
     private void addOrder(Order order) {
         stringRedisTemplate.opsForHash().putAll(orderDetailsKey(order.getOrderId()),

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class RedisOrderBookManager implements OrderBookManager {
     private final OrderBook orderBook;
     @Override
-    public OrderBook getOrderBook(int ignored) {
+    public OrderBook getOrderBook(int __) {
         return orderBook;
     }
 }
