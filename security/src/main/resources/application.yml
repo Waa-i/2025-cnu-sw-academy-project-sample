@@ -1,8 +1,8 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:security}
-    username: ${MYSQL_USERNAME:root}
+    url: jdbc:mysql://${MYSQL_HOST:34.22.93.234}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:security}
+    username: ${MYSQL_USERNAME:nhnuser}
     password: ${MYSQL_PASSWORD:1234}
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -20,10 +20,10 @@ exchange-server:
   port: ${EXCHANGE_SERVER_PORT:8081}
 
 jwt:
-  secret-key: ${JWT_SECRET_KEY:아주긴시크릿키값123456789012345678901234567890}
+  secret-key: ${JWT_SECRET_KEY:dsacsawdwqsadsdascsacsaccsac123456789012345678901234567890}
   access-token-expired-at: ${ACCESS_TOKEN_EXPIRED_AT:5}
   refresh-token-expired-at: ${REFRESH_TOKEN_EXPIRED_AT:7}
 
 # secret key는 임시값
 aes:
-  secret-key: ${AES_SECRET_KEY:my-super-secret-key-123456}
+  secret-key: ${AES_SECRET_KEY:my-super-secret-key-1234}

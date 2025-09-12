@@ -11,6 +11,7 @@ import edu.cnu.swacademy.security.auth.dto.LoginResponse;
 import edu.cnu.swacademy.security.auth.dto.TokenReissueRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import edu.cnu.swacademy.security.common.SecurityException;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -20,12 +21,12 @@ public class AuthController {
   private final AuthService authService;
 
   @PostMapping("/login")
-  public LoginResponse login(@Valid @RequestBody LoginRequest request) throws Exception {
+  public LoginResponse login(@Valid @RequestBody LoginRequest request) throws SecurityException {
     return authService.login(request);
   }
 
   @PutMapping("/reissue")
-  public LoginResponse reissue(@Valid @RequestBody TokenReissueRequest request) throws Exception {
+  public LoginResponse reissue(@Valid @RequestBody TokenReissueRequest request) throws SecurityException {
     return authService.reissue(request);
   }
 }
