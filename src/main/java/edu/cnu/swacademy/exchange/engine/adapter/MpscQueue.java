@@ -1,4 +1,4 @@
-package edu.cnu.swacademy.exchange.engine.event.adapter;
+package edu.cnu.swacademy.exchange.engine.adapter;
 
 import lombok.RequiredArgsConstructor;
 import org.jctools.queues.MessagePassingQueue;
