@@ -24,6 +24,6 @@ jwt:
   access-token-expired-at: ${ACCESS_TOKEN_EXPIRED_AT:5}
   refresh-token-expired-at: ${REFRESH_TOKEN_EXPIRED_AT:7}
 
-# secret key는 임시값
+# secret key는 임시값 Byte 수 조절
 aes:
   secret-key: ${AES_SECRET_KEY:my-super-secret-key-1234}
