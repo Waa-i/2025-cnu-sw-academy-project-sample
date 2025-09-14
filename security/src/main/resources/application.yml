@@ -12,6 +12,11 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
+  data:
+    redis: #현재 환경변수 치환 실패 문제로 common package 내 RedisConfig 로 Bean 주입중 (즉, 아래 설정 무효화됨)
+      host: ${REDIS_HOST:34.22.93.234}
+      port: ${REDIS_PORT:6379}
+
 server:
   port: 8080
 
