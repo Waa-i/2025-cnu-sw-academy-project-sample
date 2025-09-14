@@ -1,4 +1,4 @@
-package edu.cnu.swacademy.security.market;
+package edu.cnu.swacademy.security.order;
 
 import edu.cnu.swacademy.security.common.BaseEntity;
 import edu.cnu.swacademy.security.stock.Stock;
@@ -22,7 +22,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
 @SQLDelete(sql = "UPDATE match SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@Table(name = "`match`")
+@Table(name = "match")
 @Entity
 public class Match extends BaseEntity {
 

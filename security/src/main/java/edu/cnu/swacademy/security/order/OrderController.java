@@ -1,0 +1,95 @@
+package edu.cnu.swacademy.security.order;
+
+import edu.cnu.swacademy.security.common.SecurityException;
+import edu.cnu.swacademy.security.order.dto.OrderRequest;
+import edu.cnu.swacademy.security.order.dto.OrderSubmitRequest;
+import edu.cnu.swacademy.security.order.dto.OrderSubmitResponse;
+import edu.cnu.swacademy.security.order.dto.UnfilledOrdersResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/order")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    /**
+     * 주문 접수
+     * 사용자가 특정 종목에 대해 매수/매도 주문을 접수합니다.
+     *
+     * @param request HTTP 요청 (JWT 토큰에서 사용자 ID 추출)
+     * @param request 주문 접수 요청
+     * @return 주문 접수 응답
+     * @throws SecurityException 주문 접수 실패 시 발생
+     */
+    @PostMapping
+    public OrderSubmitResponse submitOrder(
+            HttpServletRequest request,
+            @RequestBody OrderSubmitRequest orderRequest
+    ) throws SecurityException {
+        // JWT에서 사용자 ID 추출
+        int userId = (int) request.getAttribute("user_id");
+
+        return orderService.submitOrder(userId, orderRequest);
+    }
+
+    /**
+     * 당일 미체결 주문 내역 조회
+     * 사용자가 거래소에 제출한 미체결 주문 내역을 조회합니다.
+     * Order 엔티티의 unfilledQuantity가 1 이상인 주문들만 가져옵니다.
+     *
+     * @param request HTTP 요청 (JWT 토큰에서 사용자 ID 추출)
+     * @param stockId 종목 ID (선택사항)
+     * @param side 매수/매도 방향 (선택사항)
+     * @param page 페이지 번호 (기본값: 0)
+     * @param size 페이지 크기 (기본값: 10)
+     * @param sort 정렬 방향 (기본값: desc)
+     * @return 미체결 주문 목록
+     */
+    @GetMapping("/unfilled")
+    public UnfilledOrdersResponse getUnfilledOrders(
+            HttpServletRequest request,
+            @RequestParam(required = false) Integer stockId,
+            @RequestParam(required = false) String side,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "desc") String sort
+    ) {
+        // JWT에서 사용자 ID 추출
+        int userId = (int) request.getAttribute("user_id");
+
+        // 정렬 방향 검증 및 설정
+        Sort.Direction direction = "asc".equalsIgnoreCase(sort) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size,  Sort.by(direction, "createdAt"));
+
+        return orderService.getUnfilledOrders(userId, stockId, side, pageable);
+    }
+
+    /**
+     * 주문 취소
+     * 사용자가 이미 접수한 주문 중 미체결 수량(unfilled amount)을 모두 취소합니다.
+     *
+     * @param request HTTP 요청 (JWT 토큰에서 사용자 ID 추출)
+     * @param orderId 주문 ID
+     * @return 주문 취소 응답
+     * @throws SecurityException 주문 취소 실패 시 발생
+     */
+    @DeleteMapping("/{order_id}")
+    public OrderSubmitResponse cancelOrder(
+            HttpServletRequest request,
+            @PathVariable("order_id") int orderId
+    ) throws SecurityException {
+        // JWT에서 사용자 ID 추출
+        int userId = (int) request.getAttribute("user_id");
+
+        return orderService.cancelOrder(userId, orderId);
+    }
+}

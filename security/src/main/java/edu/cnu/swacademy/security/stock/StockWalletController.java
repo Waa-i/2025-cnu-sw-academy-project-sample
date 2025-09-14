@@ -1,6 +1,7 @@
 package edu.cnu.swacademy.security.stock;
 
 import edu.cnu.swacademy.security.stock.dto.StockBalanceResponse;
+import edu.cnu.swacademy.security.stock.dto.StockDepositRequest;
 import edu.cnu.swacademy.security.stock.dto.StockWalletRequest;
 import edu.cnu.swacademy.security.common.SecurityException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,19 +23,40 @@ public class StockWalletController {
 
   @PostMapping
   public void createStockWallet(
-      HttpServletRequest request,
-      @Valid @RequestBody StockWalletRequest stockWalletRequest
+          HttpServletRequest request,
+          @Valid @RequestBody StockWalletRequest stockWalletRequest
   ) throws SecurityException {
     int userId = (int) request.getAttribute("user_id");
     stockWalletService.createStockWallet(userId, stockWalletRequest);
   }
 
-  @GetMapping("/{stockId}/balance")
+  @PostMapping("/reserve")
+  public void deposit(
+          @Valid @RequestBody StockDepositRequest depositRequest
+  ) throws SecurityException {
+    stockWalletService.deposit(depositRequest);
+  }
+
+  @GetMapping("/balance/{stock_id}")
   public StockBalanceResponse getBalance(
-      HttpServletRequest request,
-      @PathVariable int stockId
+          HttpServletRequest request,
+          @PathVariable("stock_id") int stockId
   ) throws SecurityException {
     int userId = (int) request.getAttribute("user_id");
     return stockWalletService.getBalance(userId, stockId);
+  }
+
+  @PostMapping("/{stock_wallet_id}/block")
+  public void blockStockWallet(
+          @PathVariable("stock_wallet_id") int stockWalletId
+  ) throws SecurityException {
+    stockWalletService.blockStockWallet(stockWalletId);
+  }
+
+  @PostMapping("/{stock_wallet_id}/unblock")
+  public void unblockStockWallet(
+          @PathVariable("stock_wallet_id") int stockWalletId
+  ) throws SecurityException {
+    stockWalletService.unblockStockWallet(stockWalletId);
   }
 }

@@ -1,17 +1,9 @@
-package edu.cnu.swacademy.security.market;
+package edu.cnu.swacademy.security.order;
 
 import edu.cnu.swacademy.security.common.BaseEntity;
 import edu.cnu.swacademy.security.stock.Stock;
 import edu.cnu.swacademy.security.user.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,8 +32,9 @@ public class Order extends BaseEntity {
   @JoinColumn(nullable = false)
   private Stock stock;
 
-  @Column(nullable = false, length = 4)
-  private String side;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private OrderSide side;
 
   @Column(nullable = false, columnDefinition = "INT UNSIGNED")
   private int price;

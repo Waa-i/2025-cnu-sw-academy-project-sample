@@ -1,6 +1,5 @@
-package edu.cnu.swacademy.security.market.dto;
+package edu.cnu.swacademy.security.order.dto;
 
-import edu.cnu.swacademy.security.market.Order;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

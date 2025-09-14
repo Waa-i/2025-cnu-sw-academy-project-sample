@@ -4,6 +4,8 @@ package edu.cnu.swacademy.security.market;
 import edu.cnu.swacademy.security.common.BaseEntity;
 import edu.cnu.swacademy.security.market.dto.MarketResponse;
 import edu.cnu.swacademy.security.market.exception.MarketAlreadyOpenException;
+import edu.cnu.swacademy.security.order.Match;
+import edu.cnu.swacademy.security.order.MatchRepository;
 import edu.cnu.swacademy.security.stock.Stock;
 import edu.cnu.swacademy.security.stock.StockRepository;
 import org.springframework.stereotype.Service;

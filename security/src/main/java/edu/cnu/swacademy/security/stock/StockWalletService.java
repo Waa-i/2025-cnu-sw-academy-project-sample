@@ -1,5 +1,6 @@
 package edu.cnu.swacademy.security.stock;
 
+import edu.cnu.swacademy.security.stock.dto.StockDepositRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +60,22 @@ public class StockWalletService {
         userId, request.stockId(), stockWallet.getId());
   }
 
+
+    /**
+     * 증권 입고
+     * 입고 수량만큼 사용자의 증권 계좌의 보유 잔고를 증가시킵니다.
+     *
+     * @param request 증권 입고 요청 (종목 계좌 ID, amount 포함)
+     * @throws SecurityException 입고 실패 시 발생 (종목 계좌 없음, 정지됨)
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deposit(StockDepositRequest request) throws SecurityException {
+        // TODO: 증권 입고 로직을 구현하세요
+        // 1. 사용자의 특정 종목 증권 계좌 조회
+        // 2. 종목 계좌 정지 상태 확인
+        // 3. 증권 입고 처리
+    }
+
   /**
    * 증권 지갑 잔고 조회
    * 사용자가 보유한 특정 종목의 증권지갑 상태를 확인하여, 실제 보유하고 있는 잔고(reserve), 
@@ -93,4 +110,37 @@ public class StockWalletService {
         available
     );
   }
+
+
+    /**
+     * 종목 계좌 정지
+     * 사용자의 종목 계좌을 정지하여 모든 종목 관련 거래를 차단합니다.
+     *
+     * @param stockWalletId 종목 계좌 ID (PathVariable로 받은 값)
+     * @throws SecurityException 정지 실패 시 발생 (종목 계좌 없음, 이미 정지됨)
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void blockStockWallet(int stockWalletId) throws SecurityException {
+        // TODO: 종목 계좌 정지 로직을 구현하세요
+        // 1. 사용자의 종목 계좌 조회
+        // 2. 이미 정지된 계좌인지 확인
+        // 3. 종목 계좌 정지 처리
+        // 4. 계좌 정지 내역 생성 (변경 내역 기록)
+    }
+
+    /**
+     * 종목 계좌 정지 해제
+     * 정지 상태로 잠겨 있던 종목 계좌를 정상 상태로 되돌려, 다시 매도 주문 접수가 가능하도록 허용합니다.
+     *
+     * @param stockWalletId 종목 계좌 ID
+     * @throws SecurityException 해제 실패 시 발생 (종목 계좌 없음, 이미 해제됨)
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void unblockStockWallet(int stockWalletId) throws SecurityException {
+        // TODO: 종목 계좌 정지 해제 로직을 구현하세요
+        // 1. 현금 계좌 조회
+        // 2. 이미 정지 해제된 계좌인지 확인
+        // 3. 계좌 정지 해제 처리
+        // 4. 계좌 정지 해제 내역 생성 (변경 내역 기록)
+    }
 }
