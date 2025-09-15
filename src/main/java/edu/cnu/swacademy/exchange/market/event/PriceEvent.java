@@ -1,4 +1,4 @@
-package edu.cnu.swacademy.exchange.order.event;
+package edu.cnu.swacademy.exchange.market.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

@@ -2,7 +2,6 @@ package edu.cnu.swacademy.exchange.orderbook.manager;
 
 import edu.cnu.swacademy.exchange.orderbook.OrderBook;
 import edu.cnu.swacademy.exchange.orderbook.impl.MemoryOrderBook;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -15,5 +14,12 @@ public class MemoryOrderBookManager implements OrderBookManager {
 
     public OrderBook getOrderBook(int stockId) {
         return orderBookMap.computeIfAbsent(stockId, k -> new MemoryOrderBook());
+    }
+
+    @Override
+    public void clearAll() {
+        for (OrderBook orderBook : orderBookMap.values()) {
+            orderBook.clear();
+        }
     }
 }

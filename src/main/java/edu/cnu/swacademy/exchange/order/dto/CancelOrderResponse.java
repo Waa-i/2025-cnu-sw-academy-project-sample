@@ -1,4 +1,6 @@
 package edu.cnu.swacademy.exchange.order.dto;
 
-public record CancelOrderResponse() {
+import edu.cnu.swacademy.exchange.match.MatchResult;
+
+public record CancelOrderResponse(MatchResult matchResult) {
 }

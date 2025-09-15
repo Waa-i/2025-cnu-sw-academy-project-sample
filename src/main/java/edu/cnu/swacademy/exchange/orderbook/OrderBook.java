@@ -13,4 +13,5 @@ public interface OrderBook {
     default int getFilledQuantity(int unfilledAmount, int oppositeUnfilledAmount) {
         return Math.min(unfilledAmount, oppositeUnfilledAmount);
     }
+    void clear();
 }

@@ -49,6 +49,12 @@ public class MemoryOrderBook implements OrderBook {
         }
         return List.copyOf(bids.keySet());
     }
+
+    @Override
+    public void clear() {
+
+    }
+
     private List<Match> process(Order order, Int2ObjectMap<Queue<Order>> opposite, Int2ObjectMap<Queue<Order>> same) {
         List<Match> result = new ArrayList<>();
         Queue<Order> oppositeQueue = opposite.get(order.getPrice());

@@ -14,4 +14,9 @@ public class RedisOrderBookManager implements OrderBookManager {
     public OrderBook getOrderBook(int __) {
         return orderBook;
     }
+
+    @Override
+    public void clearAll() {
+        orderBook.clear();
+    }
 }
