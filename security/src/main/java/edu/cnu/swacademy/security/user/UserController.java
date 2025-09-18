@@ -21,4 +21,6 @@ public class UserController {
   public UserSignupResponse signup(@Valid @RequestBody UserSignupRequest request) throws Exception {
     return userService.signup(request);
   }
+
+
 }

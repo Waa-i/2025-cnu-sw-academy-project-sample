@@ -1,5 +1,6 @@
 package edu.cnu.swacademy.security.stock;
 
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
@@ -55,5 +57,25 @@ public class StockWallet extends BaseEntity {
     this.reserve = 0;
     this.deposit = 0;
     this.isBlocked = false;
+  }
+
+  public void deposit(int amount) {
+    this.reserve += amount;
+  }
+
+  public void block() {
+    this.isBlocked = true;
+  }
+
+  public void unblock() {
+    this.isBlocked = false;
+  }
+
+  public int getAvailable() {
+    return this.reserve - this.deposit;
+  }
+
+  public void updateSellOrder(int quantity) {
+    this.deposit += quantity;
   }
 }
