@@ -4,6 +4,7 @@ import edu.cnu.swacademy.security.asset.CashWallet;
 import edu.cnu.swacademy.security.asset.CashWalletHistory;
 import edu.cnu.swacademy.security.asset.CashWalletHistoryRepository;
 import edu.cnu.swacademy.security.asset.CashWalletRepository;
+import edu.cnu.swacademy.security.asset.TransactionType;
 import edu.cnu.swacademy.security.common.ErrorCode;
 import edu.cnu.swacademy.security.common.SecurityException;
 import edu.cnu.swacademy.security.market.MarketStatus;
@@ -12,6 +13,7 @@ import edu.cnu.swacademy.security.order.dto.*;
 import edu.cnu.swacademy.security.stock.*;
 import edu.cnu.swacademy.security.user.User;
 import edu.cnu.swacademy.security.user.UserRepository;
+import edu.cnu.swacademy.security.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -37,6 +40,8 @@ public class OrderService {
     private final CashWalletHistoryRepository cashWalletHistoryRepository;
     private final StockWalletHistoryRepository stockWalletHistoryRepository;
     private final MarketStatusRepository marketStatusRepository;
+    private final UserService userService;
+    private final RestTemplate restTemplate;
 
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -120,7 +125,7 @@ public class OrderService {
 
         CashWalletHistory history = new CashWalletHistory(
                 cashWallet,
-                edu.cnu.swacademy.security.asset.TransactionType.BUY_ORDER,
+                TransactionType.BUY_ORDER,
                 (int) requiredAmount,
                 "매수 주문",
                 cashWallet.getReserve()
@@ -157,18 +162,101 @@ public class OrderService {
      */
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public OrderSubmitResponse submitOrder(int userId, OrderSubmitRequest request) throws SecurityException {
+        int stockId = request.stockId();
+        String side = request.side();
+        int price = request.price();
         // TODO: 주문 접수 로직을 구현하세요
         // 1. 사용자 존재 여부 확인
+        if(!userRepository.existsById(userId)){
+            throw new SecurityException(ErrorCode.USER_NOT_FOUND);
+        }
         // 2. 종목 존재 여부 확인
+        if(!stockRepository.existsById(stockId)){
+            throw new SecurityException(ErrorCode.STOCK_NOT_FOUND);
+        }
         // 3. 주문 방향 검증
+        if(!side.equalsIgnoreCase("BUY") && !side.equalsIgnoreCase("SELL")){
+            throw new SecurityException(ErrorCode.INVALID);
+        }
         // 4. 지갑 정지 여부 검증
-        // 5. 가격 틱 사이즈 검증
-        // 6. 상하한가 검증
+        validateWalletStatus(userId,stockId);
+
+        // 5. 가격 틱 사이즈 검증 (호가 단위)
+        validateTickSize(price);
+
+        // 6. 상하한가 검증 (Not impl Yet)
+        validatePriceLimits(stockId,price);
+
         // 7. 현금/종목 게좌 내 자산 부족 검증 및 업데이트
+        validateAndUpdateWallet(userId,stockId,OrderSide.valueOf(side),price,request.quantity());
+
+
         // 8. 주문 생성
+        User user = userRepository.findById(userId).get();
+        Stock stock = stockRepository.findById(stockId).get();
+        Order order = new Order(0,user,stock,OrderSide.valueOf(side),price,request.quantity(),request.quantity(),0);
+        orderRepository.save(order);
+        OrderExchangeRequest exchangeRequest = new OrderExchangeRequest(order.getId(),stock.getId(),price,request.quantity(),side,order.getCreatedAt().format(DateTimeFormatter.BASIC_ISO_DATE));
+
+
         // 9. Exchange 서버로 주문 전송
-        // 10. Exchange 서버로부터 주문 접수 결과(match_result)에 따른 후속 처리 구현 (API 명세서 참고[link:https://hackmd.io/oauvWmzrTESwjYoSgHUegQ?both#%EC%9D%91%EB%8B%B5-%EA%B2%B0%EA%B3%BC-%EC%A4%91-%EC%A3%BC%EB%AC%B8-%EC%A0%91%EC%88%98-%EA%B2%B0%EA%B3%BCmatch_result%EC%97%90-%EB%94%B0%EB%A5%B8-%ED%9B%84%EC%86%8D-%EC%B2%98%EB%A6%AC])
+        String exchangeUrl = "http://localhost:8081/api/v1/market/order";
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<OrderExchangeRequest> entity = new HttpEntity<>(exchangeRequest,headers);
+        ResponseEntity<OrderExchangeResponse> response = restTemplate.postForEntity(exchangeUrl, entity, OrderExchangeResponse.class);
+
+
+        // 10. Exchange 서버로부터 주문 접수 결과(match_result)에 따른 후속 처리 구현 (API 명세서 참고[link:https://hackmd.io/oauvWmzrTESwjYoSgHUegQ?both#%EC%9D%91%EB%8B%B5-%EA%B2%B0%EA%B3%BC-%EC%A4%91-%EC%A3%BC%EB%AC%B8-%EC%A0%91%EC%88%98-%EA%B2%B0%EA%B3%BCmatch_result%EC%97%90-%EB%94%B0%EB%A5%B8-%ED%9B%84%EC%86%8D-%EC%B2%98%EB%A6%AC]
+        if(!response.getStatusCode().is2xxSuccessful()){
+            if(response.getStatusCode().value() == 404) {
+                throw new SecurityException(ErrorCode.ORDER_NOT_FOUND);
+            }
+            if(response.getStatusCode().value() == 416){
+                throw new SecurityException(ErrorCode.PRICE_OUT_OF_BOUNDS);
+            }
+            if(response.getStatusCode().value() == 500){
+                throw new SecurityException(ErrorCode.SERVER_ERROR);
+            }
+        }
+        OrderExchangeResponse body = response.getBody();
+        if(body == null){
+            log.error("Exchange Response Body is Null");
+            throw new SecurityException(ErrorCode.SERVER_ERROR);
+        }
+        String matchResult = body.match_result();
+
+        if(matchResult.equalsIgnoreCase("Unmatched")){
+            executeOrderUnmatched();
+        }
+        if(matchResult.equalsIgnoreCase("Matched")){
+            executeOrderMatched();
+        }
+        if(matchResult.equalsIgnoreCase("Rejected")){
+            executeOrderRejected();
+        }
+        if(matchResult.equalsIgnoreCase("Cancelled")){
+            executeOrderCancelled();
+        }
+
         return null;
+    }
+
+    private void executeOrderUnmatched(){
+        log.info("Order Unmatched");
+    }
+
+    private void executeOrderMatched(){
+        log.info("Order Matched");
+
+
+    }
+
+    private void executeOrderRejected(){
+
+    }
+
+    private void executeOrderCancelled(){
+
     }
 
     /**
@@ -177,7 +265,27 @@ public class OrderService {
     private void validateWalletStatus(int userId, int stockId) throws SecurityException {
         // TODO: 지갑 정지 여부 검증 로직을 구현하세요
         // 현금 지갑 정지 여부 확인
+        Optional<CashWallet> cashWalletOpt = cashWalletRepository.findByUserId(userId);
+        if(cashWalletOpt.isPresent()){
+            CashWallet cashWallet = cashWalletOpt.get();
+            if(cashWallet.isBlocked()){
+                throw new SecurityException(ErrorCode.CASH_WALLET_BLOCKED);
+            }
+        } else {
+            throw new SecurityException(ErrorCode.CASH_WALLET_NOT_FOUND);
+        }
+
         // 종목 지갑 정지 여부 확인
+        Optional<StockWallet> stockWalletOpt = stockWalletRepository.findByUserIdAndStockId(userId,stockId);
+        if(stockWalletOpt.isPresent()){
+            StockWallet stockWallet = stockWalletOpt.get();
+            if(stockWallet.isBlocked()){
+                throw new SecurityException(ErrorCode.WALLET_BLOCKED);
+            }
+        } else {
+            throw new SecurityException(ErrorCode.STOCK_WALLET_NOT_FOUND);
+        }
+
     }
 
     /**
@@ -185,6 +293,25 @@ public class OrderService {
      */
     private void validateTickSize(int price) throws SecurityException {
         // TODO: 가격 틱 사이즈 검증 로직을 구현하세요
+        int tick;
+        if (price < 2000) {
+            tick = 1;
+        } else if (price < 5000) {
+            tick = 5;
+        } else if (price < 20000) {
+            tick = 10;
+        } else if (price < 50000) {
+            tick = 50;
+        } else if (price < 200000) {
+            tick = 100;
+        } else if (price < 500000) {
+            tick = 500;
+        } else {
+            tick = 1000;
+        }
+        if(!(price % tick == 0)){
+            throw new SecurityException(ErrorCode.PRICE_OUT_OF_BOUNDS);
+        }
     }
 
     /**
