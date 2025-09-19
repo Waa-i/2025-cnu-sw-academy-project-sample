@@ -1,15 +1,18 @@
 package edu.cnu.swacademy.exchange.orderbook.impl;
 
 import edu.cnu.swacademy.exchange.market.event.PriceEvent;
+import edu.cnu.swacademy.exchange.market.event.TotalUnitEvent;
 import edu.cnu.swacademy.exchange.match.Match;
 import edu.cnu.swacademy.exchange.match.MatchResult;
 import edu.cnu.swacademy.exchange.order.Order;
 import edu.cnu.swacademy.exchange.order.dto.PriceAddRequest;
 import edu.cnu.swacademy.exchange.order.dto.PriceRemoveRequest;
+import edu.cnu.swacademy.exchange.order.dto.TotalUnitAddRequest;
+import edu.cnu.swacademy.exchange.order.dto.TotalUnitRemoveRequest;
 import edu.cnu.swacademy.exchange.orderbook.OrderBook;
 import edu.cnu.swacademy.exchange.orderbook.event.ClearOrderBookEvent;
 import edu.cnu.swacademy.exchange.orderbook.exception.NoOrderException;
-import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +30,8 @@ public class RedisOrderBook implements OrderBook {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ApplicationEventPublisher publisher;
+    @Getter
+    private int lastTradePrice;
 
     @Override
     public List<Match> match(Order order) {
@@ -60,6 +65,7 @@ public class RedisOrderBook implements OrderBook {
         if(stringRedisTemplate.hasKey(orderDetailsKey(order.getOrderId()))) {
             removeOrder(order);
             log.info("주문 취소: [주문번호:{}, 주문 수량:{}, 미체결 수량:{}]", order.getOrderId(), order.getAmount(), order.getUnfilledAmount());
+            publisher.publishEvent(new TotalUnitEvent<>(this, new TotalUnitRemoveRequest(order.getStockId(), order.getSide(), order.getPrice(), order.getUnfilledAmount())));
             return new Match(order.getStockId(), MatchResult.CANCELED);
         }
         return new Match(order.getStockId(), MatchResult.UNMATCHED);
@@ -79,6 +85,7 @@ public class RedisOrderBook implements OrderBook {
             order.setUnfilledAmount(order.getUnfilledAmount() - filledQty);
             oppositeOrder.setUnfilledAmount(oppositeOrder.getUnfilledAmount() - filledQty);
             log.info("체결: [주문번호:{} 체결 수량:{} 미체결 수량:{}]", order.getOrderId(), filledQty, order.getUnfilledAmount());
+            lastTradePrice = oppositeOrder.getPrice();
             result.add(new Match(order.getStockId(), MatchResult.MATCHED, oppositeOrder.getOrderId(), order.getOrderId()));
 
             if(oppositeOrder.getUnfilledAmount() == 0 && order.getUnfilledAmount() == 0) {
@@ -101,8 +108,8 @@ public class RedisOrderBook implements OrderBook {
         return result;
     }
     private List<Integer> getPrices(int stockId, Order.Side side) {
-        List<String> prices = stringRedisTemplate.opsForList().range(priceKey(stockId, side), 0, -1);
-        if(prices == null) {
+        Set<String> prices = stringRedisTemplate.opsForZSet().range(priceKey(stockId, side), 0, -1);
+        if(prices == null || prices.isEmpty()) {
             throw new NoOrderException(side.name());
         }
         return prices.stream().map(Integer::parseInt).toList();
@@ -120,6 +127,7 @@ public class RedisOrderBook implements OrderBook {
                 orderKey(order.getStockId(), order.getSide(), order.getPrice()),
                 String.valueOf(order.getOrderId())
         );
+        publisher.publishEvent(new TotalUnitEvent<>(this, new TotalUnitAddRequest(order.getOrderId(), order.getSide(), order.getPrice(), order.getUnfilledAmount())));
         publisher.publishEvent(new PriceEvent<>(this, new PriceAddRequest(order.getStockId(), order.getSide(), order.getPrice())));
     }
     private void removeOrder(Order order) {

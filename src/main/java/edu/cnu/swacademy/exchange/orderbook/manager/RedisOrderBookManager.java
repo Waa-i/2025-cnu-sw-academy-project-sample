@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-@Primary
+//@Primary
 @Component
 @RequiredArgsConstructor
 public class RedisOrderBookManager implements OrderBookManager {

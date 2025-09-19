@@ -6,6 +6,7 @@ import edu.cnu.swacademy.exchange.match.Match;
 import edu.cnu.swacademy.exchange.orderbook.manager.OrderBookManager;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ public class MatchingEngine implements Runnable {
     private final TaskExecutor taskExecutor;
     private final MarketEventQueue marketEventQueue;
     private final OrderBookManager orderBookManager;
+    private final ApplicationEventPublisher publisher;
 
     @PostConstruct
     public void start() {
@@ -39,6 +41,9 @@ public class MatchingEngine implements Runnable {
                 else if(event instanceof CloseMarketEvent marketEvent) {
                     orderBookManager.clearAll();
                     marketEvent.getResult().complete(ExchangeStatus.CLOSED);
+                }
+                else if(event instanceof OpenMarketEvent marketEvent) {
+                    marketEvent.getResult().complete(ExchangeStatus.OPENED);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

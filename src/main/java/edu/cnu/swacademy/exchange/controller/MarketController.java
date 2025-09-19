@@ -3,6 +3,7 @@ package edu.cnu.swacademy.exchange.controller;
 import edu.cnu.swacademy.exchange.engine.MarketEventQueue;
 import edu.cnu.swacademy.exchange.market.ExchangeStatus;
 import edu.cnu.swacademy.exchange.market.event.CloseMarketEvent;
+import edu.cnu.swacademy.exchange.market.event.OpenMarketEvent;
 import edu.cnu.swacademy.exchange.match.Match;
 import edu.cnu.swacademy.exchange.order.Order;
 import edu.cnu.swacademy.exchange.order.dto.CancelOrderRequest;
@@ -40,6 +41,13 @@ public class MarketController {
         CompletableFuture<Match> result = new CompletableFuture<>();
         marketEventQueue.publish(new CancelOrderEvent(result, order));
         return result.thenApplyAsync(match-> new CancelOrderResponse(match.getMatchResult()));
+    }
+
+    @PostMapping("/open")
+    public CompletableFuture<ExchangeStatus> open() {
+        CompletableFuture<ExchangeStatus> result = new CompletableFuture<>();
+        marketEventQueue.publish(new OpenMarketEvent(result));
+        return result;
     }
 
     @PostMapping("/close")

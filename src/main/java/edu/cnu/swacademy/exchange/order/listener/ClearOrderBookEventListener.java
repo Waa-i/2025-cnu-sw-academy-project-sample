@@ -20,7 +20,7 @@ public class ClearOrderBookEventListener {
     private static final String BID_PRICE_LIST_PATTERN = "*:BUY";
     private static final String ASK_PRICE_LIST_PATTERN = "*:SELL";
 
-    @Async
+    @Async("ioExecutor")
     @EventListener(ClearOrderBookEvent.class)
     public void handleClearOrderBookEvent() {
         clearOrderDetails();
